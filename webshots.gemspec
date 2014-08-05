@@ -14,4 +14,6 @@ Gem::Specification.new do |gem|
   gem.name          = "webshots"
   gem.require_paths = ["lib"]
   gem.version       = Webshots::VERSION
+
+  gem.add_dependency "sheller"
 end

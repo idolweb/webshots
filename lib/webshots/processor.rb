@@ -1,5 +1,6 @@
 require 'fileutils'
-require 'tempfile'
+require 'sheller'
+require 'tmpdir'
 
 module Webshots
   class Processor
@@ -16,12 +17,14 @@ module Webshots
       options_str = str_from_options(options)
 
        # Need to create a temporary file with a png extension that wkhtmltoimage can write to
-      @tmp_file_path = File.join(File.dirname(Tempfile.new('screenshot')), rand_str) + '.png'
+      tmp_file_path = File.join(Dir.tmpdir, rand_str) + '.png'
       
-      cmd = "#{Webshots.executable} #{options_str} #{url} #{@tmp_file_path}"
-      system(cmd)
+      cmd = [Webshots.executable, options_str, url, tmp_file_path].flatten
+      result = Sheller.execute(*cmd)
 
-      @tmp_file_path
+      raise result.stderr + "\n" + result.stdout unless File.exists?(tmp_file_path)
+
+      tmp_file_path
     end
 
     private
@@ -31,20 +34,20 @@ module Webshots
     end
 
     def self.str_from_options(options={})
-      str = ''
+      str = []
       options.each do |key,val|
-        str << "--#{key} #{val} "
+        str << ["--#{key}", val]
       end
-      str
+      str.flatten
     end
 
     # sometimes we want to run fast tests and not go out on the internet to fetch
     # a url
     def self.test_file
-      @tmp_file_path = File.join(File.dirname(Tempfile.new('screenshot')), rand_str) + '.png'
-      @static_file_path = File.absolute_path(File.join(File.dirname(__FILE__), '..', '..', 'files', '1024x768.png'))
-      FileUtils.cp @static_file_path, @tmp_file_path
-      @tmp_file_path
+      tmp_file_path = File.join(Dir.tmpdir, rand_str) + '.png'
+      static_file_path = File.absolute_path(File.join(File.dirname(__FILE__), '..', '..', 'files', '1024x768.png'))
+      FileUtils.cp static_file_path, tmp_file_path
+      tmp_file_path
     end
 
   end
