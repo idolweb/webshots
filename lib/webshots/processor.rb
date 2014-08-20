@@ -11,14 +11,11 @@ module Webshots
 
       return test_file if Webshots.mode == 'test'
 
-      default_options = {'crop-h' => 768, 'crop-w' => 1024, 'height' => 768, 'width' => 1024}
-      options = default_options.merge(options_param)
-
-      options_str = str_from_options(options)
+      options_str = str_from_options(options_param)
 
        # Need to create a temporary file with a png extension that wkhtmltoimage can write to
       tmp_file_path = File.join(Dir.tmpdir, rand_str) + '.png'
-      
+
       cmd = [Webshots.executable, options_str, url, tmp_file_path].flatten
       result = Sheller.execute(*cmd)
 
