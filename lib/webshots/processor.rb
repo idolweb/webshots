@@ -5,18 +5,22 @@ require 'tmpdir'
 module Webshots
   class Processor
 
+    TIMEOUT = 60
+
     # returns a path to a tmpfile containing a png with a screenshot
     def self.url_to_png(url, options_param={})
       raise "no url given" unless url
 
       return test_file if Webshots.mode == 'test'
 
+      timeout = options_param.delete(:timeout) || TIMEOUT
+
       options_str = str_from_options(options_param)
 
        # Need to create a temporary file with a png extension that wkhtmltoimage can write to
       tmp_file_path = File.join(Dir.tmpdir, rand_str) + '.png'
 
-      cmd = [Webshots.executable, options_str, url, tmp_file_path].flatten
+      cmd = [Webshots.timeout_cmd, "--kill-after=#{timeout}s", "#{timeout}s",  Webshots.executable, options_str, url, tmp_file_path].flatten
       result = Sheller.execute(*cmd)
 
       raise result.stderr + "\n" + result.stdout unless File.exists?(tmp_file_path)
